@@ -112,29 +112,43 @@
         .code-block-wrapper {
             position: relative;
             margin: 1em 0;
+            padding-top: 40px;
         }
 
-        .code-actions {
+        /* Position the Copy Code button on the right */
+        .copy-button {
             position: absolute;
-            right: 10px;
             top: 5px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-button {
-            padding: 4px 8px;
+            right: 10px;
             background-color: #4a5568;
             color: white;
+            padding: 6px 12px;
             border-radius: 4px;
             font-size: 12px;
-            opacity: 0.8;
+            border: none;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
 
-        .action-button:hover {
-            opacity: 1;
+        /* Position the Test Code button to the left of Copy Code */
+        .test-button {
+            position: absolute;
+            top: 5px;
+            right: 120px;  /* This pushes it left of the Copy button */
+            background-color: #2563eb;  /* Different color for distinction */
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .copy-button:hover {
+            background-color: #374151;
+        }
+
+        .test-button:hover {
+            background-color: #1d4ed8;
         }
 
         .test-results {
@@ -236,7 +250,19 @@
                 return hljs.highlight(code, {language: lang || 'plaintext'}).value;
             }
         });
-
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            const highlightedCode = language ? hljs.highlight(code, {language}).value : hljs.highlightAuto(code).value;
+            return `
+                <div class="code-block-wrapper">
+                    <button class="test-button">Test Code</button>
+                    <button class="copy-button">Copy Code</button>
+                    <pre><code class="hljs ${language || ''}">${highlightedCode}</code></pre>
+                    <div class="test-results"></div>
+                </div>
+            `;
+        };
+        marked.setOptions({ renderer });
         // Create new chat
         async function createNewChat() {
             try {
@@ -369,11 +395,18 @@
             const renderer = new marked.Renderer();
             renderer.code = function(code, language) {
                 const highlightedCode = language ? hljs.highlight(code, {language}).value : hljs.highlightAuto(code).value;
+
+                // Simplified HTML structure with both buttons
+                const buttonsHtml = `
+                    <button class="test-button">Test Code</button>
+                    <button class="copy-button">Copy Code</button>
+                `;
+
                 return `
                     <div class="code-block-wrapper">
-                        <button class="copy-button">Copy Code</button>
-                        <div class="copy-tooltip">Copy</div>
+                        ${buttonsHtml}
                         <pre><code class="hljs ${language || ''}">${highlightedCode}</code></pre>
+                        <div class="test-results"></div>
                     </div>
                 `;
             };
@@ -383,6 +416,73 @@
             // Parse markdown and render HTML
             contentDiv.innerHTML = marked.parse(content);
             messageDiv.appendChild(contentDiv);
+
+            // Immediately initialize code blocks after adding content
+            messageDiv.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
+                // Ensure buttons exist
+                if (!wrapper.querySelector('.test-button') || !wrapper.querySelector('.copy-button')) {
+                    const buttonsDiv = document.createElement('div');
+                    buttonsDiv.innerHTML = `
+                        <button class="test-button">Test Code</button>
+                        <button class="copy-button">Copy Code</button>
+                    `;
+                    wrapper.insertBefore(buttonsDiv, wrapper.firstChild);
+                }
+
+                const copyButton = wrapper.querySelector('.copy-button');
+                const testButton = wrapper.querySelector('.test-button');
+                const codeElement = wrapper.querySelector('code');
+                const resultsElement = wrapper.querySelector('.test-results') || (() => {
+                    const div = document.createElement('div');
+                    div.className = 'test-results';
+                    wrapper.appendChild(div);
+                    return div;
+                })();
+
+                // Copy button handler
+                copyButton.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(codeElement.textContent);
+                        copyButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyButton.textContent = 'Copy Code';
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                    }
+                });
+
+                // Test button handler
+                testButton.addEventListener('click', async () => {
+                    testButton.textContent = 'Testing...';
+                    testButton.disabled = true;
+
+                    try {
+                        const response = await fetch('/api/test-code', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                code: codeElement.textContent
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        resultsElement.textContent = data.output || 'Code executed successfully with no output';
+                        resultsElement.className = `test-results show ${data.success ? 'success' : 'error'}`;
+
+                    } catch (error) {
+                        resultsElement.textContent = `Error: ${error.message}`;
+                        resultsElement.className = 'test-results show error';
+                    } finally {
+                        testButton.textContent = 'Test Code';
+                        testButton.disabled = false;
+                    }
+                });
+            });
+
 
             // Add retry button for assistant messages
             if (role === 'assistant') {
