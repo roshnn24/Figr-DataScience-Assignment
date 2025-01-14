@@ -14,6 +14,10 @@
             overflow-y: auto;
             background-color: #1a1a1a;
             color: #e6e6e6;
+            padding: 20px;
+            gap: 15px;  /* Space between messages */
+            display: flex;
+            flex-direction: column;
         }
         .message-bubble {
             max-width: 80%;
@@ -24,7 +28,7 @@
             transition: all 0.2s ease;
         }
         .assistant-message {
-            background-color: #7FB3D5; /* Tailwind's gray-800 - a nice light shade for dark theme */
+            background-color: #2980B9; /* Tailwind's gray-800 - a nice light shade for dark theme */
             margin-right: auto;
             max-width: 80%;
             margin: 10px;
@@ -32,11 +36,12 @@
             border-radius: 10px;
             border: 1px solid #4a5568; /* Subtle border for definition */
             color: #e5e7eb; /* Light text color for contrast */
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         /* For user messages (to maintain contrast) */
         .user-message {
-            background-color: #99A3A4; /* Slightly darker than assistant messages */
+            background-color: #283747; /* Slightly darker than assistant messages */
             margin-left: auto;
             max-width: 80%;
             margin: 10px;
@@ -44,6 +49,7 @@
             border-radius: 10px;
             border: 1px solid #4a5568;
             color: #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         .chat-list {
             max-height: calc(100vh - 100px);
