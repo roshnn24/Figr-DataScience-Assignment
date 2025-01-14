@@ -12,56 +12,88 @@
         .chat-area {
             height: calc(100vh - 200px);
             overflow-y: auto;
+            background-color: #1a1a1a;
+            color: #e6e6e6;
         }
         .message-bubble {
             max-width: 80%;
             margin: 10px;
             padding: 15px;
             border-radius: 10px;
-        }
-        .user-message {
-            background-color: #e3f2fd;
-            margin-left: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
         }
         .assistant-message {
-            background-color: #f5f5f5;
+            background-color: #7FB3D5; /* Tailwind's gray-800 - a nice light shade for dark theme */
             margin-right: auto;
+            max-width: 80%;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #4a5568; /* Subtle border for definition */
+            color: #e5e7eb; /* Light text color for contrast */
+        }
+
+        /* For user messages (to maintain contrast) */
+        .user-message {
+            background-color: #99A3A4; /* Slightly darker than assistant messages */
+            margin-left: auto;
+            max-width: 80%;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #4a5568;
+            color: #e5e7eb;
         }
         .chat-list {
             max-height: calc(100vh - 100px);
             overflow-y: auto;
+            background-color: #1a1a1a;
+            border-right: 1px solid #4a5568;
+            color: #e6e6e6;
+        }
+        .chat-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #2d3748;
+            color: #e6e6e6;
         }
         .chat-item:hover {
-            background-color: #f0f0f0;
+            background-color: #2d3748;
+            transition: background-color 0.2s ease;
         }
         .active-chat {
-            background-color: #e3f2fd;
+            background-color: #3b82f6;
+            color: #ffffff;
         }
         .copy-button {
             position: absolute;
             right: 10px;
             top: 5px;
             padding: 4px 8px;
-            background-color: #4a5568;
-            color: white;
+            background-color: #3b82f6;
+            color: #ffffff;
             border-radius: 4px;
             font-size: 12px;
-            opacity: 0.8;
+            opacity: 0.9;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease;
+            border: 1px solid #60a5fa;
         }
         .copy-button:hover {
             opacity: 1;
+            background-color: #60a5fa;
         }
         .code-block-wrapper {
             position: relative;
             margin: 1em 0;
+            background-color: #1e293b;
+            border: 1px solid #4a5568;
+            border-radius: 6px;
         }
-        /* Tooltip styles */
         .copy-tooltip {
             position: absolute;
-            background-color: #4a5568;
-            color: white;
+            background-color: #2d3748;
+            color: #ffffff;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
@@ -69,6 +101,7 @@
             top: -25px;
             opacity: 0;
             transition: opacity 0.2s;
+            border: 1px solid #4a5568;
         }
         .copy-tooltip.show {
             opacity: 1;
@@ -78,33 +111,29 @@
             justify-content: flex-end;
             margin-top: 10px;
             padding-top: 8px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid #4a5568;
         }
-
         .retry-button {
             display: inline-flex;
             align-items: center;
             padding: 6px 12px;
-            background-color: #f3f4f6;
-            color: #4b5563;
-            border: 1px solid #e5e7eb;
+            background-color: #2d3748;
+            color: #e6e6e6;
+            border: 1px solid #4a5568;
             border-radius: 4px;
             font-size: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-
         .retry-button:hover {
-            background-color: #e5e7eb;
-            color: #1f2937;
+            background-color: #4a5568;
+            color: #ffffff;
         }
-
         .retry-button svg {
             width: 14px;
             height: 14px;
             margin-right: 4px;
         }
-
         .retry-button.loading {
             opacity: 0.7;
             cursor: not-allowed;
@@ -113,68 +142,47 @@
             position: relative;
             margin: 1em 0;
             padding-top: 40px;
+            background-color: #1e293b;
+            border: 1px solid #4a5568;
+            border-radius: 6px;
         }
-
-        /* Position the Copy Code button on the right */
-        .copy-button {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            background-color: #4a5568;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* Position the Test Code button to the left of Copy Code */
         .test-button {
             position: absolute;
             top: 5px;
-            right: 120px;  /* This pushes it left of the Copy button */
-            background-color: #2563eb;  /* Different color for distinction */
-            color: white;
+            right: 120px;
+            background-color: #3b82f6;
+            color: #ffffff;
             padding: 6px 12px;
             border-radius: 4px;
             font-size: 12px;
-            border: none;
+            border: 1px solid #60a5fa;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
-
-        .copy-button:hover {
-            background-color: #374151;
-        }
-
         .test-button:hover {
-            background-color: #1d4ed8;
+            background-color: #60a5fa;
         }
-
         .test-results {
             margin-top: 8px;
             padding: 12px;
-            background-color: #f8f9fa;
+            background-color: #1e293b;
             border-left: 4px solid #4a5568;
             font-family: monospace;
             white-space: pre-wrap;
             display: none;
+            color: #e6e6e6;
         }
-
         .test-results.show {
             display: block;
         }
-
         .test-results.error {
             border-left-color: #ef4444;
-            background-color: #fef2f2;
+            background-color: #2d1f1f;
         }
-
         .test-results.success {
             border-left-color: #10b981;
-            background-color: #f0fdf4;
+            background-color: #1a2e1f;
         }
-
         .loading-spinner {
             display: inline-block;
             width: 12px;
@@ -184,21 +192,194 @@
             border-top-color: transparent;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
             to {
                 transform: rotate(360deg);
             }
         }
+        .upload-button {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: 1px solid #60a5fa;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            padding: 6px 12px;
+        }
+        .upload-button:hover {
+            background-color: #60a5fa;
+        }
+        .upload-button input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* New Chat button specific styling */
+        .new-chat-button {
+            background-color: #3b82f6;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .new-chat-button:hover {
+            background-color: #60a5fa;
+        }
+
+        /* Chat title styles */
+        .chat-title {
+            color: #e6e6e6;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        /* Chat date styles */
+        .chat-date {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        /* Message input area */
+        .message-input {
+            background-color: #1e293b;
+            border: 1px solid #4a5568;
+            color: #e6e6e6;
+            border-radius: 6px;
+            padding: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .message-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Send button */
+        .send-button {
+            background-color: #3b82f6;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .send-button:hover {
+            background-color: #60a5fa;
+        }
+        .header-container {
+            text-align: center;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60A5FA, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            position: relative;
+            display: inline-block;
+            margin-left: 0.5rem;
+            animation: blink 2s infinite;
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .particle:nth-child(1) { animation: float-1 8s infinite; }
+        .particle:nth-child(2) { animation: float-2 10s infinite; }
+        .particle:nth-child(3) { animation: float-3 7s infinite; }
+        .particle:nth-child(4) { animation: float-4 9s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes float-1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        @keyframes float-2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-15px, -25px); }
+        }
+
+        @keyframes float-3 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(25px, -15px); }
+        }
+
+        @keyframes float-4 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, -10px); }
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-900">
     <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold text-blue-500 text-center mb-6">Figr AI Code Assistant</h1>
         <div class="flex gap-4">
             <!-- Sidebar with chat list -->
-            <div class="w-1/4 bg-white rounded-lg shadow-lg p-4">
+            <div class="w-1/4 bg-gray-800 rounded-lg shadow-lg p-4">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">Chats</h2>
+                    <h2 class="text-xl font-bold text-gray-100">Chats</h2>
                     <button onclick="createNewChat()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                         New Chat
                     </button>
@@ -209,7 +390,7 @@
             </div>
 
             <!-- Main chat area -->
-            <div class="w-3/4 bg-white rounded-lg shadow-lg p-4">
+            <div class="w-3/4 bg-gray-800 rounded-lg shadow-lg p-4">
                 <div id="chatArea" class="chat-area mb-4">
                     <!-- Messages will be dynamically added here -->
                 </div>
@@ -218,22 +399,36 @@
                 <div class="flex gap-2">
                     <textarea
                         id="userInput"
-                        class="w-full p-2 border rounded-lg resize-none"
+                        class="w-full p-2 border rounded-lg resize-none bg-gray-700 text-gray-100"
                         rows="3"
                         placeholder="Type your message here..."
                     ></textarea>
-                    <button
-                        onclick="sendMessage()"
-                        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-                    >
-                        Send
-                    </button>
+                    <div class="flex flex-col gap-2">
+                        <label class="relative cursor-pointer bg-gray-700 hover:bg-gray-600 p-2 rounded-lg flex items-center justify-center">
+                            <input type="file"
+                                   id="fileInput"
+                                   accept=".py"
+                                   class="hidden"
+                                   onchange="handleFileUpload(event)"/>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </label>
+                        <button
+                            onclick="sendMessage()"
+                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                        >
+                            Send
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Important Information -->
                 <div class="mt-4">
-                    <h3 class="text-lg font-bold mb-2">Important Information</h3>
-                    <div id="importantInfo" class="bg-yellow-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-bold mb-2 text-gray-100">Important Information</h3>
+                    <div id="importantInfo" class="bg-gray-800 p-4 rounded-lg text-gray-100 border border-gray-700">
                         <!-- Important info will be added here -->
                     </div>
                 </div>
@@ -380,6 +575,47 @@
             }
             scrollToBottom();
         }
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.py')) {
+                alert('Please upload only Python (.py) files');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Add the file content and analysis to the chat
+                    const message = `I've uploaded a Python file named "${data.filename}". Here's the code:\n\n\`\`\`python\n${data.content}\n\`\`\``;
+                    document.getElementById('userInput').value = message;
+                    await sendMessage();
+
+                    // Send the analysis as an assistant message
+                    const analysisMessage = data.analysis;
+                    displayMessage('assistant', analysisMessage);
+
+                    // Clear the file input
+                    event.target.value = '';
+                } else {
+                    alert(data.error || 'Error uploading file');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading file');
+            }
+        }
+
 
         // Display a single message
         function displayMessage(role, content) {
