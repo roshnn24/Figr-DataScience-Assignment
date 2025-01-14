@@ -11,6 +11,7 @@ import json
 from typing import Dict, List
 import sqlite3
 from contextlib import contextmanager
+import re
 
 app = Flask(__name__)
 
@@ -200,19 +201,52 @@ llm_chain = LLMChain(llm=llm, prompt=prompt)
 
 
 def convert_to_html(raw_text):
+    """Convert markdown to HTML while preserving code blocks with custom buttons"""
     try:
-        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".txt") as temp_input:
+        # Create a temporary markdown file
+        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".md") as temp_input:
             temp_input.write(raw_text)
             temp_input_path = temp_input.name
 
+        # Use pandoc with specific options to preserve code blocks
         with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as temp_output:
             temp_output_path = temp_output.name
 
-        result = subprocess.run(["pandoc", temp_input_path, "-o", temp_output_path], capture_output=True, text=True)
+        # Use pandoc with specific options
+        cmd = [
+            "pandoc",
+            temp_input_path,
+            "-f", "markdown",
+            "-t", "html",
+            "--highlight-style=pygments",
+            "--no-highlight",  # Disable pandoc's highlighting
+            "-o", temp_output_path
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
 
         if result.returncode == 0:
             with open(temp_output_path, "r") as f:
                 html_content = f.read()
+
+            # Add custom buttons to code blocks
+            import re
+            def replace_code_block(match):
+                code_class = match.group(1) or ''
+                code_content = match.group(2)
+                return f'''
+                    <div class="code-block-wrapper">
+                        <button class="test-button">Test Code</button>
+                        <button class="copy-button">Copy Code</button>
+                        <pre><code class="hljs {code_class}">{code_content}</code></pre>
+                        <div class="test-results"></div>
+                    </div>
+                '''
+
+            # Replace <pre><code> blocks with our custom wrapper
+            pattern = r'<pre><code class="([^"]*)">(.*?)</code></pre>'
+            html_content = re.sub(pattern, replace_code_block, html_content, flags=re.DOTALL)
+
         else:
             html_content = f"Error: {result.stderr}"
 
@@ -260,6 +294,36 @@ def update_chat_metadata(session_id: str, last_message: str):
         conn.commit()
 
 
+def format_response(response):
+    """Format response with proper code block structure"""
+    # First, handle code blocks with language specification
+    formatted = re.sub(
+        r'```(\w+)\n(.*?)\n```',
+        lambda
+            m: f'<div class="code-block-wrapper">\n<button class="test-button">Test Code</button>\n<button class="copy-button">Copy Code</button>\n<pre><code class="hljs {m.group(1)}">{m.group(2)}</code></pre>\n<div class="test-results"></div>\n</div>',
+        response,
+        flags=re.DOTALL
+    )
+
+    # Then handle code blocks without language specification
+    formatted = re.sub(
+        r'```\n(.*?)\n```',
+        lambda
+            m: f'<div class="code-block-wrapper">\n<button class="test-button">Test Code</button>\n<button class="copy-button">Copy Code</button>\n<pre><code class="hljs">{m.group(1)}</code></pre>\n<div class="test-results"></div>\n</div>',
+        formatted,
+        flags=re.DOTALL
+    )
+
+    # Handle inline code
+    formatted = re.sub(
+        r'`([^`]+)`',
+        r'<code class="inline-code">\1</code>',
+        formatted
+    )
+
+    return formatted
+
+
 @app.route("/api/chat-list", methods=["GET"])
 def get_chat_list():
     """Get list of all chats from database"""
@@ -301,11 +365,40 @@ def chat():
         for info in new_important_info:
             session.add_important_info(info)
 
-        # Convert to HTML
-        formatted_response = convert_to_html(raw_response)
+        # Format the response properly with code block structure
+        def format_response(response):
+            # First, handle code blocks with language specification
+            formatted = re.sub(
+                r'```(\w+)\n(.*?)\n```',
+                lambda
+                    m: f'<div class="code-block-wrapper">\n<button class="test-button">Test Code</button>\n<button class="copy-button">Copy Code</button>\n<pre><code class="hljs {m.group(1)}">{m.group(2)}</code></pre>\n<div class="test-results"></div>\n</div>',
+                response,
+                flags=re.DOTALL
+            )
 
-        # Add assistant response
-        session.add_message("assistant", raw_response)
+            # Then handle code blocks without language specification
+            formatted = re.sub(
+                r'```\n(.*?)\n```',
+                lambda
+                    m: f'<div class="code-block-wrapper">\n<button class="test-button">Test Code</button>\n<button class="copy-button">Copy Code</button>\n<pre><code class="hljs">{m.group(1)}</code></pre>\n<div class="test-results"></div>\n</div>',
+                formatted,
+                flags=re.DOTALL
+            )
+
+            # Handle inline code
+            formatted = re.sub(
+                r'`([^`]+)`',
+                r'<code class="inline-code">\1</code>',
+                formatted
+            )
+
+            return formatted
+
+        # Format the response
+        formatted_response = format_response(raw_response)
+
+        # Store the formatted response
+        session.add_message("assistant", formatted_response)
 
         return jsonify({
             "response": formatted_response,
@@ -340,6 +433,15 @@ def get_chat_history():
             (session_id,)
         ).fetchall()
 
+        # Format assistant messages if they aren't already formatted
+        formatted_messages = []
+        for msg in messages:
+            message_dict = dict(msg)
+            if message_dict['role'] == 'assistant' and '```' in message_dict['content']:
+                # Format the response if it contains code blocks
+                message_dict['content'] = format_response(message_dict['content'])
+            formatted_messages.append(message_dict)
+
         # Get important info
         important_info = conn.execute(
             'SELECT content FROM important_info WHERE chat_id = ?',
@@ -347,7 +449,7 @@ def get_chat_history():
         ).fetchall()
 
         return jsonify({
-            "history": [dict(msg) for msg in messages],
+            "history": formatted_messages,
             "important_info": [info['content'] for info in important_info]
         })
 
@@ -396,14 +498,14 @@ def test_code():
         code = data.get("code", "")
 
         # Create a temporary file to store the code
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.js', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(code)
             temp_file = f.name
 
         try:
-            # Run the code using Node.js
+            # Run the code using Python
             result = subprocess.run(
-                ['node', temp_file],
+                ['python', temp_file],
                 capture_output=True,
                 text=True,
                 timeout=5  # 5 second timeout for safety
