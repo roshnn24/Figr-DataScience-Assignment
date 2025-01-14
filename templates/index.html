@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Interface</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .chat-area {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .message-bubble {
+            max-width: 80%;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+        }
+        .assistant-message {
+            background-color: #f5f5f5;
+            margin-right: auto;
+        }
+        .chat-list {
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        .chat-item:hover {
+            background-color: #f0f0f0;
+        }
+        .active-chat {
+            background-color: #e3f2fd;
+        }
+        .copy-button {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            padding: 4px 8px;
+            background-color: #4a5568;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0.8;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .copy-button:hover {
+            opacity: 1;
+        }
+        .code-block-wrapper {
+            position: relative;
+            margin: 1em 0;
+        }
+        /* Tooltip styles */
+        .copy-tooltip {
+            position: absolute;
+            background-color: #4a5568;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            right: 10px;
+            top: -25px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .copy-tooltip.show {
+            opacity: 1;
+        }
+        .message-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .retry-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .retry-button svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+        }
+
+        .retry-button.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .code-block-wrapper {
+            position: relative;
+            margin: 1em 0;
+        }
+
+        .code-actions {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-button {
+            padding: 4px 8px;
+            background-color: #4a5568;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0.8;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .action-button:hover {
+            opacity: 1;
+        }
+
+        .test-results {
+            margin-top: 8px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #4a5568;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .test-results.show {
+            display: block;
+        }
+
+        .test-results.error {
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .test-results.success {
+            border-left-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex gap-4">
+            <!-- Sidebar with chat list -->
+            <div class="w-1/4 bg-white rounded-lg shadow-lg p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Chats</h2>
+                    <button onclick="createNewChat()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        New Chat
+                    </button>
+                </div>
+                <div id="chatList" class="chat-list">
+                    <!-- Chat items will be dynamically added here -->
+                </div>
+            </div>
+
+            <!-- Main chat area -->
+            <div class="w-3/4 bg-white rounded-lg shadow-lg p-4">
+                <div id="chatArea" class="chat-area mb-4">
+                    <!-- Messages will be dynamically added here -->
+                </div>
+
+                <!-- Input area -->
+                <div class="flex gap-2">
+                    <textarea
+                        id="userInput"
+                        class="w-full p-2 border rounded-lg resize-none"
+                        rows="3"
+                        placeholder="Type your message here..."
+                    ></textarea>
+                    <button
+                        onclick="sendMessage()"
+                        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+                    >
+                        Send
+                    </button>
+                </div>
+
+                <!-- Important Information -->
+                <div class="mt-4">
+                    <h3 class="text-lg font-bold mb-2">Important Information</h3>
+                    <div id="importantInfo" class="bg-yellow-50 p-4 rounded-lg">
+                        <!-- Important info will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+
+        // Initialize marked with syntax highlighting
+        marked.setOptions({
+            highlight: function(code, lang) {
+                return hljs.highlight(code, {language: lang || 'plaintext'}).value;
+            }
+        });
+
+        // Create new chat
+        async function createNewChat() {
+            try {
+                const response = await fetch('/api/new-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    currentSessionId = data.chat.id;
+                    await loadChatList();
+                    clearChatArea();
+                }
+            } catch (error) {
+                console.error('Error creating new chat:', error);
+            }
+        }
+
+        // Load chat list
+        async function loadChatList() {
+            try {
+                const response = await fetch('/api/chat-list');
+                const data = await response.json();
+                const chatListElement = document.getElementById('chatList');
+                chatListElement.innerHTML = '';
+
+                data.chats.forEach(chat => {
+                    const chatElement = document.createElement('div');
+                    chatElement.className = `chat-item p-3 cursor-pointer rounded ${
+                        chat.id === currentSessionId ? 'active-chat' : ''
+                    }`;
+                    chatElement.onclick = () => loadChat(chat.id);
+                    chatElement.innerHTML = `
+                        <div class="font-medium">${chat.title || 'New Chat'}</div>
+                        <div class="text-sm text-gray-500">${new Date(chat.date).toLocaleDateString()}</div>
+                    `;
+                    chatListElement.appendChild(chatElement);
+                });
+            } catch (error) {
+                console.error('Error loading chat list:', error);
+            }
+        }
+
+        // Load specific chat
+        async function loadChat(sessionId) {
+            currentSessionId = sessionId;
+            try {
+                const response = await fetch(`/api/chat-history?sessionId=${sessionId}`);
+                const data = await response.json();
+                displayChatHistory(data.history);
+                displayImportantInfo(data.important_info);
+                await loadChatList(); // Refresh chat list to update active state
+            } catch (error) {
+                console.error('Error loading chat:', error);
+            }
+        }
+
+        // Display chat history
+        function displayChatHistory(history) {
+            const chatArea = document.getElementById('chatArea');
+            chatArea.innerHTML = '';
+            history.forEach(message => {
+                displayMessage(message.role, message.content);
+            });
+            scrollToBottom();
+        }
+
+        // Display important information
+        function displayImportantInfo(info) {
+            const infoElement = document.getElementById('importantInfo');
+            infoElement.innerHTML = info.length > 0
+                ? info.map(item => `<p>• ${item}</p>`).join('')
+                : '<p>No important information yet</p>';
+        }
+
+        // Send message
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+
+            if (!message) return;
+            if (!currentSessionId) {
+                await createNewChat();
+            }
+
+            displayMessage('user', message);
+            userInput.value = '';
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        sessionId: currentSessionId
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    displayMessage('assistant', data.response);
+                    displayImportantInfo(data.important_info);
+                    await loadChatList(); // Refresh chat list to show updated title
+                } else {
+                    displayMessage('assistant', 'Error: ' + data.response);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                displayMessage('assistant', 'Error sending message');
+            }
+            scrollToBottom();
+        }
+
+        // Display a single message
+        function displayMessage(role, content) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${role}-message`;
+
+            // Create a div for message content
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            // Custom renderer for marked to wrap code blocks (same as before)
+            const renderer = new marked.Renderer();
+            renderer.code = function(code, language) {
+                const highlightedCode = language ? hljs.highlight(code, {language}).value : hljs.highlightAuto(code).value;
+                return `
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy Code</button>
+                        <div class="copy-tooltip">Copy</div>
+                        <pre><code class="hljs ${language || ''}">${highlightedCode}</code></pre>
+                    </div>
+                `;
+            };
+
+            marked.setOptions({ renderer });
+
+            // Parse markdown and render HTML
+            contentDiv.innerHTML = marked.parse(content);
+            messageDiv.appendChild(contentDiv);
+
+            // Add retry button for assistant messages
+            if (role === 'assistant') {
+                const footer = document.createElement('div');
+                footer.className = 'message-footer';
+                footer.innerHTML = `
+                    <button class="retry-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M2.5 2v6h6M21.5 22v-6h-6"/>
+                            <path d="M22 11.5A10 10 0 003.2 7.2M2 12.5a10 10 0 0018.8 4.2"/>
+                        </svg>
+                        Retry
+                    </button>
+                `;
+                messageDiv.appendChild(footer);
+
+                // Add click handler for retry button
+                const retryButton = footer.querySelector('.retry-button');
+                const lastUserMessage = findLastUserMessage();
+                if (lastUserMessage) {
+                    retryButton.addEventListener('click', () => retryMessage(lastUserMessage, messageDiv));
+                }
+            }
+
+            // Add copy button functionality
+            addCopyButtons(contentDiv);
+
+            chatArea.appendChild(messageDiv);
+        }
+
+        // Helper function to find the last user message before an assistant message
+        function findLastUserMessage() {
+            const chatArea = document.getElementById('chatArea');
+            const messages = chatArea.querySelectorAll('.message-bubble');
+            let lastUserMessage = null;
+
+            for (let i = messages.length - 1; i >= 0; i--) {
+                if (messages[i].classList.contains('user-message')) {
+                    const contentDiv = messages[i].querySelector('.message-content');
+                    if (contentDiv) {
+                        lastUserMessage = contentDiv.textContent;
+                        break;
+                    }
+                }
+            }
+
+            return lastUserMessage;
+        }
+
+        // Clear chat area
+        function clearChatArea() {
+            document.getElementById('chatArea').innerHTML = '';
+            document.getElementById('importantInfo').innerHTML = '<p>No important information yet</p>';
+            document.getElementById('userInput').value = '';
+        }
+
+        // Scroll chat area to bottom
+        function scrollToBottom() {
+            const chatArea = document.getElementById('chatArea');
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Handle Enter key in textarea
+        document.getElementById('userInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        window.onload = async function() {
+            await loadChatList();
+        };
+        async function copyCode(codeElement, tooltipElement) {
+            try {
+                await navigator.clipboard.writeText(codeElement.textContent);
+                tooltipElement.textContent = 'Copied!';
+                tooltipElement.classList.add('show');
+                setTimeout(() => {
+                    tooltipElement.classList.remove('show');
+                }, 1500);
+            } catch (err) {
+                console.error('Failed to copy code:', err);
+                tooltipElement.textContent = 'Failed to copy';
+                tooltipElement.classList.add('show');
+                setTimeout(() => {
+                    tooltipElement.classList.remove('show');
+                }, 1500);
+            }
+        }
+        async function retryMessage(originalMessage, messageElement) {
+            if (!currentSessionId) return;
+
+            const retryButton = messageElement.querySelector('.retry-button');
+            if (retryButton.classList.contains('loading')) return;
+
+            // Show loading state
+            retryButton.classList.add('loading');
+            retryButton.innerHTML = `
+                <svg class="animate-spin" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                Regenerating...
+            `;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: originalMessage,
+                        sessionId: currentSessionId
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Replace the old message content with new content
+                    const contentDiv = messageElement.querySelector('.message-content');
+                    contentDiv.innerHTML = marked.parse(data.response);
+
+                    // Reapply syntax highlighting
+                    contentDiv.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightBlock(block);
+                    });
+
+                    // Add copy buttons to new code blocks
+                    addCopyButtons(contentDiv);
+
+                    // Update important info
+                    displayImportantInfo(data.important_info);
+                } else {
+                    alert('Error regenerating response: ' + data.response);
+                }
+            } catch (error) {
+                console.error('Error regenerating message:', error);
+                alert('Error regenerating response');
+            } finally {
+                // Restore retry button
+                retryButton.classList.remove('loading');
+                retryButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M2.5 2v6h6M21.5 22v-6h-6"/>
+                        <path d="M22 11.5A10 10 0 003.2 7.2M2 12.5a10 10 0 0018.8 4.2"/>
+                    </svg>
+                    Retry
+                `;
+            }
+        }
+
+        // Helper function to add copy buttons to code blocks
+        function addCopyButtons(element) {
+            element.querySelectorAll('.code-block-wrapper').forEach(wrapper => {
+                const copyButton = wrapper.querySelector('.copy-button');
+                const codeElement = wrapper.querySelector('code');
+                const tooltipElement = wrapper.querySelector('.copy-tooltip');
+
+                copyButton.addEventListener('click', () => copyCode(codeElement, tooltipElement));
+
+                copyButton.addEventListener('mouseenter', () => {
+                    tooltipElement.textContent = 'Copy';
+                    tooltipElement.classList.add('show');
+                });
+                copyButton.addEventListener('mouseleave', () => {
+                    if (tooltipElement.textContent === 'Copy') {
+                        tooltipElement.classList.remove('show');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
