@@ -12,9 +12,15 @@ from typing import Dict, List
 import sqlite3
 from contextlib import contextmanager
 import re
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'py'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Database configuration
 DATABASE_PATH = 'chat_database.db'
 
@@ -176,7 +182,7 @@ class ChatSession:
 
 # Rest of the prompt template and other configurations remain the same
 prompt_template = """
-You are a helpful code assistant with memory of our conversation. 
+You're name is Figr Code Assistant, a helpful code assistant. 
 
 Important Information from our conversation:
 {important_info}
@@ -258,6 +264,11 @@ def convert_to_html(raw_text):
             os.remove(temp_output_path)
 
     return html_content
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def extract_important_info(response):
     important_items = []
@@ -452,6 +463,51 @@ def get_chat_history():
             "history": formatted_messages,
             "important_info": [info['content'] for info in important_info]
         })
+
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'error': 'No file part'})
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No selected file'})
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Read the file content
+        with open(filepath, 'r') as f:
+            content = f.read()
+
+        # Analyze the code using the LLM
+        analysis_prompt = f"""
+        Please analyze this Python code:
+
+        {content}
+
+        Provide:
+        1. A clear explanation of what the code does
+        2. Any potential errors or improvements
+        3. Suggestions for better practices
+        """
+
+        analysis = llm.predict(analysis_prompt)
+
+        # Clean up the uploaded file
+        os.remove(filepath)
+
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'content': content,
+            'analysis': analysis
+        })
+
+    return jsonify({'success': False, 'error': 'Invalid file type'})
 
 
 @app.route("/api/clear-memory", methods=["POST"])
