@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 DATABASE_PATH = 'chat_database.db'
 
 # Initialize LangChain with Ollama LLM
-llm = Ollama(model="llama3.1:8b")
+llm = Ollama(model="mistral:7b")
 
 
 @contextmanager
@@ -182,22 +182,29 @@ class ChatSession:
 
 # Rest of the prompt template and other configurations remain the same
 prompt_template = """
-You're name is Figr Code Assistant, a helpful code assistant who provides error-free perfect python codes. 
+Role: You are Figr Code Assistant, specializing in providing clear, error-free Python code solutions.
 
-Important Information from our conversation:
+Context:
 {important_info}
 
-Chat History:
+Previous Conversation:
 {chat_history}
 
-Current request:
+Current Request:
 {user_request}
-- If user asks multiple concepts or if you need to generate a very long code with separate use cases, you may give multiple code snippets separately and explanation for each snippet.
-- If you feel only one code snippet will be enough and easy to understand, give only one and don't complicate it. MOSTLY STICK ON TO SINGLE CLEAR CODE SNIPPETS
-- If code is necessary, the response should include raw code with backticks (```python) for code blocks.
-- Inline code should be in backticks.
-- Return raw text without HTML formatting.
-- If you identify any important information that should be remembered (like user preferences, project requirements, or technical constraints), start that line with [IMPORTANT] in your response.
+
+Output Guidelines:
+1. Code Format:
+   - Use ```python for code blocks
+   - Use `code` for inline code references
+   - Provide raw text without HTML formatting
+2. Code Organization:
+   - Default to single, focused code snippets for clarity
+   - Only split into multiple snippets(each individually runnable) if:
+     a) Multiple distinct concepts are requested
+     b) Complex functionality requires modular explanation
+     
+   - Mark critical information with [IMPORTANT] prefix and give small explanations with some bold headings if required.
 """
 
 prompt = PromptTemplate(
@@ -491,9 +498,11 @@ def upload_file():
         {content}
 
         Provide:
-        1. A clear explanation of what the code does
+        1. A clear, small explanation
         2. Any potential errors or improvements
         3. Suggestions for better practices
+        
+        - Each in separate neat paragraphs with highlighted headings.
         """
 
         analysis = llm.predict(analysis_prompt)
