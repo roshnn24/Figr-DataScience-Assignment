@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 DATABASE_PATH = 'chat_database.db'
 
 # Initialize LangChain with Ollama LLM
-llm = Ollama(model="llama2")
+llm = Ollama(model="llama3.1:8b")
 
 
 @contextmanager
@@ -182,7 +182,7 @@ class ChatSession:
 
 # Rest of the prompt template and other configurations remain the same
 prompt_template = """
-You're name is Figr Code Assistant, a helpful code assistant. 
+You're name is Figr Code Assistant, a helpful code assistant who provides error-free perfect python codes. 
 
 Important Information from our conversation:
 {important_info}
@@ -193,6 +193,7 @@ Chat History:
 Current request:
 {user_request}
 - If user asks multiple concepts or if you need to generate a very long code with separate use cases, you may give multiple code snippets separately and explanation for each snippet.
+- If you feel only one code snippet will be enough and easy to understand, give only one and don't complicate it. MOSTLY STICK ON TO SINGLE CLEAR CODE SNIPPETS
 - If code is necessary, the response should include raw code with backticks (```python) for code blocks.
 - Inline code should be in backticks.
 - Return raw text without HTML formatting.
