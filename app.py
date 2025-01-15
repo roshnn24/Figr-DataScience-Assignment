@@ -198,13 +198,14 @@ Output Guidelines:
    - Use ```python for code blocks
    - Use `code` for inline code references
    - Provide raw text without HTML formatting
+
 2. Code Organization:
    - Default to single, focused code snippets for clarity
    - Only split into multiple snippets(each individually runnable) if:
      a) Multiple distinct concepts are requested
      b) Complex functionality requires modular explanation
      
-   - Mark critical information with [IMPORTANT] prefix and give small explanations with some bold headings if required.
+   - Mark critical information with [IMPORTANT] prefix and give small explanations with some bold headings if required and in white font always.
 """
 
 prompt = PromptTemplate(
