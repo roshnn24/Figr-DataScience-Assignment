@@ -19,10 +19,12 @@ from werkzeug.utils import secure_filename
 # Initialisation of the flask app
 app = Flask(__name__)
 
+# Upload folder to contain .py files
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'py'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 # Database configuration
 DATABASE_PATH = 'chat_database.db'
 
