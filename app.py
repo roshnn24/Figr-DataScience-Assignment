@@ -198,6 +198,7 @@ Output Guidelines:
    - Use ```python for code blocks
    - Use `code` for inline code references
    - Provide raw text without HTML formatting
+   - Strictly include explanation only after code blocks
 
 2. Code Organization:
    - Default to single, focused code snippets for clarity
