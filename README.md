@@ -51,34 +51,14 @@ This assistant integrates:
 - Smart content persistence strategy to balance memory use.
 - Session-specific context retrieval for seamless interactions.
 
----
-
-## Usage Demonstration
-### Example Interaction
-**User:** "Find the user with the highest total transaction amount from a CSV."
-
-**Assistant:**
-"Here's the solution:
-```python
-import pandas as pd
-
-def find_highest_transaction():
-    df = pd.read_csv('transactions.csv')
-    totals = df.groupby('user_id')['amount'].sum()
-    return totals.idxmax(), totals.max()
-```
-
-Testing with sample data...
-Result: user202 has the highest total: $450.5."
-
----
 
 ## Installation & Setup 🛠️
 1. Clone this repository.
 2. Install dependencies: `pip install -r requirements.txt`.
 3. Ensure Pandoc is installed for markdown rendering.
-4. Run the application: `python app.py`.
-5. Access the assistant at `http://localhost:5000`.
+4. Download ollama and run model in terminal: `ollama run mistral:7b`.
+5. Run the application: `python app.py`.
+6. Access the assistant at `http://localhost:5000`.
 
 ---
 
