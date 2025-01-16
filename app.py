@@ -32,7 +32,8 @@ DATABASE_PATH = 'chat_database.db'
 llm = Ollama(model="mistral:7b")
 
 
-@contextmanager
+
+@contextmanager # To manage the entire lifecycle of the db connection
 def get_db_connection():
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
@@ -41,7 +42,7 @@ def get_db_connection():
     finally:
         conn.close()
 
-
+# Create the 3 tables in which I store the necessary details for chat history
 def init_db():
     with get_db_connection() as conn:
         conn.execute('''
@@ -75,10 +76,11 @@ def init_db():
         conn.commit()
 
 
-# Initialize database on startup of the app
+# Initialize database on startup of app
 init_db()
 
 
+# Defines a custom class to manage a chat session by initialising it and loading previous chat from the db which is initialised earlier.
 class ChatSession:
     def __init__(self, session_id):
         self.session_id = session_id
@@ -108,7 +110,8 @@ class ChatSession:
                     self.memory.chat_memory.add_user_message(msg['content'])
                 else:
                     self.memory.chat_memory.add_ai_message(msg['content'])
-
+                    
+    # Function to load the important info given my model in earlier responses
     def _load_important_info(self):
         """Load important info from database"""
         with get_db_connection() as conn:
@@ -142,6 +145,7 @@ class ChatSession:
         else:
             self.memory.chat_memory.add_ai_message(content)
 
+    # Adds the important info of current response
     def add_important_info(self, content):
         """Add important information to database"""
         with get_db_connection() as conn:
@@ -155,6 +159,7 @@ class ChatSession:
     def get_memory_variables(self):
         return self.memory.load_memory_variables({})
 
+    # Function to clear all memory
     def clear_memory(self):
         """Clear all memory from database"""
         with get_db_connection() as conn:
@@ -220,6 +225,7 @@ prompt = PromptTemplate(
 llm_chain = LLMChain(llm=llm, prompt=prompt)
 
 
+# Using pandac to convert raw text to HTML markdown and in order to segregate code blocks to place copy code and test code buttons
 def convert_to_html(raw_text):
     """Convert markdown to HTML while preserving code blocks with custom buttons"""
     try:
@@ -280,6 +286,7 @@ def convert_to_html(raw_text):
     return html_content
 
 
+# To allow only .py files in the upload
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -291,6 +298,7 @@ def extract_important_info(response):
             important_items.append(line.replace('[IMPORTANT]', '').strip())
     return important_items
 
+# To create new chat in the left panel
 def create_new_chat(session_id: str):
     """Create a new chat session with metadata in database"""
     with get_db_connection() as conn:
@@ -318,7 +326,7 @@ def update_chat_metadata(session_id: str, last_message: str):
         )
         conn.commit()
 
-
+# Function to structure the code snippets into specific blocks of code
 def format_response(response):
     """Format response with proper code block structure"""
     
@@ -348,7 +356,11 @@ def format_response(response):
 
     return formatted
 
+
 # Route handlers start from here
+
+
+# To list the history of chats in left panel
 @app.route("/api/chat-list", methods=["GET"])
 def get_chat_list():
     """Get list of all chats from database"""
@@ -359,8 +371,7 @@ def get_chat_list():
         })
 
 
-
-
+# To handle message send and receive from the LLM
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.json
@@ -438,6 +449,7 @@ def chat():
         })
 
 
+# To create a new chat from the left panel
 @app.route("/api/new-chat", methods=["POST"])
 def new_chat():
     """Create a new chat session"""
@@ -446,6 +458,7 @@ def new_chat():
     return jsonify({"success": True, "chat": chat})
 
 
+# Get the history of particular chat from the db
 @app.route("/api/chat-history", methods=["GET"])
 def get_chat_history():
     """Get chat history for a specific session"""
@@ -479,6 +492,7 @@ def get_chat_history():
         })
 
 
+# Facilitates the upload of .py files
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -513,7 +527,7 @@ def upload_file():
 
         analysis = llm.predict(analysis_prompt)
 
-        # Clean up the uploaded file
+        # Clean up the uploaded file to save memory
         os.remove(filepath)
 
         return jsonify({
@@ -526,6 +540,7 @@ def upload_file():
     return jsonify({'success': False, 'error': 'Invalid file type'})
 
 
+# To clear the chat_database.db which leads to model hallucination when extremely long
 @app.route("/api/clear-memory", methods=["POST"])
 def clear_memory():
     """Clear memory based on specified option"""
@@ -563,6 +578,7 @@ def clear_memory():
             })
 
 
+# Tests the generated code using subprocess
 @app.route("/api/test-code", methods=["POST"])
 def test_code():
     try:
@@ -602,12 +618,13 @@ def test_code():
             "output": f"Error executing code: {str(e)}"
         })
 
-
+# Main route to render the index.html
 @app.route("/")
 def home():
     """Serve the main application page"""
     return render_template("index.html")
 
 
+# Start the web flask app
 if __name__ == "__main__":
     app.run(debug=True)
