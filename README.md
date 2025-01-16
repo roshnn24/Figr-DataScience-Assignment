@@ -1,4 +1,4 @@
-# AI Code Assistant 🚀
+# Figr AI Code Assistant (Mistral:7b)
 > **Note**: Currently working on optimizing conversation buffer for automatic cleanup of old chats and fixing occasional pandoc code snippet rendering issues. Updates coming soon!
 
 
