@@ -3,7 +3,11 @@
 
 
 
-https://github.com/user-attachments/assets/18df575c-0a92-4d67-bb80-1656a1529a8e
+
+
+https://github.com/user-attachments/assets/f250160c-0fa8-47e7-a431-cdb993f93913
+
+
 
 ## Project Overview
 An advanced AI Code Assistant built as part of an assignment to demonstrate creative coding approach and efficient implementation of AI-based code analysis. The project showcases practical application of LLMs for code generation, analysis, and testing.
