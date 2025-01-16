@@ -224,7 +224,7 @@ def convert_to_html(raw_text):
             temp_input.write(raw_text)
             temp_input_path = temp_input.name
 
-        # Use pandoc with specific options to preserve code blocks
+        # Use pandoc with specific options to preserve code blocks for better UI
         with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as temp_output:
             temp_output_path = temp_output.name
 
@@ -235,7 +235,7 @@ def convert_to_html(raw_text):
             "-f", "markdown",
             "-t", "html",
             "--highlight-style=pygments",
-            "--no-highlight",  # Disable pandoc's highlighting
+            "--no-highlight",
             "-o", temp_output_path
         ]
 
@@ -259,7 +259,7 @@ def convert_to_html(raw_text):
                     </div>
                 '''
 
-            # Replace <pre><code> blocks with our custom wrapper
+            # Replace <pre><code> blocks with our custom wrapper (i have done this to achieve good code blocks in the interface.)
             pattern = r'<pre><code class="([^"]*)">(.*?)</code></pre>'
             html_content = re.sub(pattern, replace_code_block, html_content, flags=re.DOTALL)
 
@@ -317,7 +317,7 @@ def update_chat_metadata(session_id: str, last_message: str):
 
 def format_response(response):
     """Format response with proper code block structure"""
-    # First, handle code blocks with language specification
+    
     formatted = re.sub(
         r'```(\w+)\n(.*?)\n```',
         lambda
@@ -326,7 +326,7 @@ def format_response(response):
         flags=re.DOTALL
     )
 
-    # Then handle code blocks without language specification
+    
     formatted = re.sub(
         r'```\n(.*?)\n```',
         lambda
@@ -335,7 +335,7 @@ def format_response(response):
         flags=re.DOTALL
     )
 
-    # Handle inline code
+    
     formatted = re.sub(
         r'`([^`]+)`',
         r'<code class="inline-code">\1</code>',
@@ -344,7 +344,7 @@ def format_response(response):
 
     return formatted
 
-
+# Route handlers start from here
 @app.route("/api/chat-list", methods=["GET"])
 def get_chat_list():
     """Get list of all chats from database"""
@@ -355,7 +355,7 @@ def get_chat_list():
         })
 
 
-# The rest of your route handlers (convert_to_html, extract_important_info, etc.) remain the same
+
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
@@ -388,7 +388,7 @@ def chat():
 
         # Format the response properly with code block structure
         def format_response(response):
-            # First, handle code blocks with language specification
+            
             formatted = re.sub(
                 r'```(\w+)\n(.*?)\n```',
                 lambda
@@ -397,7 +397,7 @@ def chat():
                 flags=re.DOTALL
             )
 
-            # Then handle code blocks without language specification
+            
             formatted = re.sub(
                 r'```\n(.*?)\n```',
                 lambda
@@ -463,7 +463,7 @@ def get_chat_history():
                 message_dict['content'] = format_response(message_dict['content'])
             formatted_messages.append(message_dict)
 
-        # Get important info
+        # Get important info to display separately as explained in demo
         important_info = conn.execute(
             'SELECT content FROM important_info WHERE chat_id = ?',
             (session_id,)
@@ -493,7 +493,7 @@ def upload_file():
         with open(filepath, 'r') as f:
             content = f.read()
 
-        # Analyze the code using the LLM
+        # Custom prompt to get the best out of uploaded .py file
         analysis_prompt = f"""
         Please analyze this Python code:
 
