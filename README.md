@@ -26,9 +26,10 @@ This project highlights practical applications of LLMs for code generation, anal
 
 ### Creativity in Design
 This assistant integrates:
-- Mocked or stubbed function calls where full implementations are complex.
-- Straightforward logic to simulate sophisticated workflows when appropriate.
+- Running its generated code in backend and producing output.
 - Retry mechanisms for failed responses with user-friendly feedback.
+- .py file upload and interpretation from it.
+
 
 ---
 
@@ -42,14 +43,15 @@ This assistant integrates:
 - File upload handling with immediate analysis feedback.
 
 ### Backend
+- **LLM Integration**: Leveraging Mistral-7B with LangChain for structured responses and dual-prompt code analysis.
 - **Flask**: Lightweight web framework for API integration.
 - **SQLite**: Contextual memory management for chat persistence.
-- **LLM Integration**: Leveraging Mistral-7B with LangChain for structured responses and dual-prompt code analysis.
+
 
 ### Memory Management
-- Automatic cleanup of older conversations.
-- Smart content persistence strategy to balance memory use.
+- Manual cleanup of older conversations.
 - Session-specific context retrieval for seamless interactions.
+- Uses langchain's conversational buffer to maintain in-chat memory.
 
 
 ## Installation & Setup 🛠️
@@ -63,21 +65,21 @@ This assistant integrates:
 ---
 
 ## Deliverables Checklist
-### Notebook or Python File
+### Python File
 - Contains all relevant code.
 - Demonstrates sample interactions showcasing the assistant's core functionality.
 
 ### Short Explanation
 - Discusses design approach, assumptions made, and areas for improvement.
+- https://youtu.be/7h_ccEBgkMU?si=A-eTYSmHaSKoh8Eg
 
 ---
 
 ## Future Enhancements 🔄
 - Optimization of conversation buffer for memory efficiency.
 - Enhanced rendering reliability for code snippets.
-- Batch file analysis capabilities.
 - Multilingual programming language support.
-- Collaborative coding features for team projects.
+- Switching between various models.
 
 ---
 
@@ -114,10 +116,9 @@ This assistant integrates:
 ---
 
 ## Author
-Your Name
+Roshaun Infant R
 
 ---
 
-## License
-MIT
+
 
