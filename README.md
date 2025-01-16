@@ -60,9 +60,6 @@ An advanced AI Code Assistant built as part of an assignment to demonstrate crea
 ├── app.py                 # Main Flask application
 ├── templates/            
 │   └── index.html        # Frontend interface
-├── static/
-│   ├── css/              # Tailwind styles
-│   └── js/               # Frontend logic
 └── chat_database.db      # SQLite database
 ```
 
