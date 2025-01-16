@@ -376,9 +376,75 @@
             0%, 100% { transform: translate(0, 0); }
             50% { transform: translate(-20px, -10px); }
         }
+        .model-label {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+        }
+        .loading-indicator {
+            position: sticky;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 24, 39, 0.95);
+            padding: 1rem;
+            border-top: 1px solid #4b5563;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading-indicator.hidden {
+            display: none;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 4px;
+            background: #374151;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            width: 40%;
+            height: 100%;
+            background: #3b82f6;
+            border-radius: 2px;
+            animation: moveProgress 1.5s infinite ease-in-out;
+        }
+
+        .loading-text {
+            color: #9ca3af;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @keyframes moveProgress {
+            0% {
+                transform: translateX(-100%);
+            }
+            50% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-900">
+<div class="model-label">Mistral:7b</div>
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-2xl font-bold text-blue-500 text-center mb-6">Figr AI Code Assistant</h1>
         <div class="flex gap-4">
@@ -429,6 +495,12 @@
                             Send
                         </button>
                     </div>
+                </div>
+                <div id="loadingIndicator" class="loading-indicator hidden">
+                    <div class="loading-bar">
+                        <div class="loading-progress"></div>
+                    </div>
+                    <div class="loading-text">Generating...</div>
                 </div>
 
                 <!-- Important Information -->
@@ -545,6 +617,7 @@
         async function sendMessage() {
             const userInput = document.getElementById('userInput');
             const message = userInput.value.trim();
+            const loadingIndicator = document.getElementById('loadingIndicator');
 
             if (!message) return;
             if (!currentSessionId) {
@@ -554,6 +627,9 @@
             displayMessage('user', message);
             userInput.value = '';
             scrollToBottom();
+
+            // Show loading indicator
+            loadingIndicator.classList.remove('hidden');
 
             try {
                 const response = await fetch('/api/chat', {
@@ -568,14 +644,20 @@
                 });
 
                 const data = await response.json();
+
+                // Hide loading indicator
+                loadingIndicator.classList.add('hidden');
+
                 if (data.success) {
                     displayMessage('assistant', data.response);
                     displayImportantInfo(data.important_info);
-                    await loadChatList(); // Refresh chat list to show updated title
+                    await loadChatList();
                 } else {
                     displayMessage('assistant', 'Error: ' + data.response);
                 }
             } catch (error) {
+                // Hide loading indicator on error too
+                loadingIndicator.classList.add('hidden');
                 console.error('Error sending message:', error);
                 displayMessage('assistant', 'Error sending message');
             }
@@ -820,10 +902,11 @@
             if (!currentSessionId) return;
 
             const retryButton = messageElement.querySelector('.retry-button');
-            if (retryButton.classList.contains('loading')) return;
+
 
             // Show loading state
             retryButton.classList.add('loading');
+
             retryButton.innerHTML = `
                 <svg class="animate-spin" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
