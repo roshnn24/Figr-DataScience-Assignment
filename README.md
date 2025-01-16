@@ -1,4 +1,5 @@
 # Figr AI Code Assistant (Mistral:7B)
+### Full Demo - https://youtu.be/7h_ccEBgkMU?si=N_I5D7dAjXACva95
 https://github.com/user-attachments/assets/f250160c-0fa8-47e7-a431-cdb993f93913
 ## Project Overview
 An advanced AI Code Assistant designed to showcase creative coding approaches and efficient implementation of AI-based code analysis, developed as part of an assignment to build a simple coding assistant.
