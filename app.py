@@ -180,7 +180,7 @@ class ChatSession:
         self.important_info = []
 
 
-# Rest of the prompt template and other configurations remain the same
+# Custom designed prompt template to achieve best results
 prompt_template = """
 Role: You are Figr Code Assistant, specializing in providing clear, error-free Python code solutions.
 
