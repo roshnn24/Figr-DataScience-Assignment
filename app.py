@@ -1,3 +1,4 @@
+# Required import statements
 from flask import Flask, render_template, request, jsonify
 import subprocess
 import tempfile
@@ -15,6 +16,7 @@ import re
 import os
 from werkzeug.utils import secure_filename
 
+# Initialisation of the flask app
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
@@ -24,7 +26,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Database configuration
 DATABASE_PATH = 'chat_database.db'
 
-# Initialize LangChain with Ollama LLM
+# Mistral:7b using Ollama
 llm = Ollama(model="mistral:7b")
 
 
@@ -71,7 +73,7 @@ def init_db():
         conn.commit()
 
 
-# Initialize database on startup
+# Initialize database on startup of the app
 init_db()
 
 
