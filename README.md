@@ -1,6 +1,10 @@
 # AI Code Assistant 🚀
 > **Note**: Currently working on optimizing conversation buffer for automatic cleanup of old chats and fixing occasional pandoc code snippet rendering issues. Updates coming soon!
 
+
+
+https://github.com/user-attachments/assets/18df575c-0a92-4d67-bb80-1656a1529a8e
+
 ## Project Overview
 An advanced AI Code Assistant built as part of an assignment to demonstrate creative coding approach and efficient implementation of AI-based code analysis. The project showcases practical application of LLMs for code generation, analysis, and testing.
 
