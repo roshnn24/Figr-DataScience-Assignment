@@ -11,7 +11,7 @@ To demonstrate the ability to:
 3. Test the generated code through execution or simulation.
 4. Request additional user input when necessary.
 
-This project highlights practical applications of LLMs for code generation, analysis, and testing while adhering to clear design principles and assumptions.
+This project highlights practical applications of LLMs for code generation, analysis, and testing.
 
 ---
 
