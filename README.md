@@ -57,7 +57,7 @@ This assistant integrates:
 
 ## Installation & Setup 🛠️
 1. Clone this repository.
-2. Install dependencies: `pip install -r requirements.txt`.
+2. Install dependencies: `pip install -r requirements.txt`.(will be uploaded)
 3. Ensure Pandoc is installed for markdown rendering.
 4. Download ollama and run model in terminal: `ollama run mistral:7b`.
 5. Run the application: `python app.py`.
